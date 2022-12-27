@@ -1,0 +1,13 @@
+- name: Create local bin 
+  file:
+    path: ~/.local/bin
+    state: directory
+  
+- name: Install Chezmoi
+  shell: |
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
+    chmod +x ~/.local/bin/chezmoi
+
+- name: Init Chezmoi 
+  shell: ~/.local/bin/chezmoi init --apply https://github.com/GabrielTouron/dotfiles.git | bash 
+

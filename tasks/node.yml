@@ -1,0 +1,11 @@
+- name: Update package manager 
+  become: true
+  apt:
+    update_cache: yes
+
+- name:
+  become: true
+  apt:
+    name: ["nodejs", "npm"]
+    state: present
+

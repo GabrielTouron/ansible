@@ -1,7 +1,194 @@
-- hosts: all
+- hosts: localhost 
+  vars_files:
+    - variables.yml
   tasks:
-    - include: tasks/chezmoi.yml
-    - include: tasks/zsh.yml
-    - include: tasks/docker.yml
-    - include: tasks/node.yml
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+      become: true
 
+    - name: Install Ubuntu tools 
+      apt:
+        pkg: 
+          - apt-transport-https
+          - software-properties-common
+          - vim
+          - zsh
+          - xclip
+          - curl
+          - htop
+          - feh
+          - maim
+          - git
+          - openssh-server
+          - ca-certificates
+          - curl
+          - lsb-release
+          - gnome-terminal
+          - fuse
+          - tmux
+        state: latest
+        update_cache: true
+      become: true
+
+    - name: Install, configure, and start Docker
+      block:
+        - name: Add Docker's GPG key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+
+        - name: Add Docker Repository
+          apt_repository:
+            repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            state: present
+
+        - name: Update apt and install Docker pkgs 
+          apt:
+            name: 
+              - docker-ce
+              - docker-compose-plugin
+              - docker-ce-cli
+              - containerd.io
+            state: latest
+            update_cache: true
+
+        - name: Create the docker group
+          group:
+            name: docker
+            state: present
+
+        - name: Add the current user to the docker group
+          user:
+            name: "{{ ansible_env.USER }}"
+            groups: docker
+            append: yes
+
+        - name: Enable the docker service
+          systemd:
+            name: docker
+            state: started
+            enabled: yes
+
+        - name: Enable the containerd service
+          systemd:
+            name: containerd
+            state: started
+            enabled: yes
+      become: true
+
+    - name: Download and install Neovim
+      block:
+        - name: Download Neovim appimage
+          get_url:
+            url: https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
+            dest: /usr/local/bin/nvim
+            mode: u+x
+
+      become: true
+      tags:
+        - pde
+
+    - name: Download and install Mattermost
+      block:
+        - name: Download Mattermost setup script 
+          get_url:
+            url: https://deb.packages.mattermost.com/setup-repo.sh
+            dest: /tmp/setup-repo.sh
+
+        - name: Run Mattermost setup script 
+          shell: bash /tmp/setup-repo.sh
+
+        - name: Install Mattermost
+          apt:
+            name: mattermost-desktop
+            state: latest
+            update_cache: true
+      become: true
+      tags:
+        - desktop
+        - codebuds
+
+    - name: Install Google Chrome
+      apt:
+        deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
+        state: present
+        update_cache: true
+      become: true 
+      tags:
+        - desktop 
+
+    - name: Download Discord
+      apt:
+        deb: https://discord.com/api/download?platform=linux&format=deb
+        state: present
+        update_cache: true
+      become: true
+      tags:
+        - desktop
+
+    - name: Download, extract, install and remove archive Postman
+      block:
+        - name: Download Postman
+          get_url:
+            url: https://dl.pstmn.io/download/latest/linux64
+            dest: /opt/postman-linux-x64.tar.gz
+
+        - name: Extract tar
+          unarchive:
+            src: /opt/postman-linux-x64.tar.gz
+            remote_src: true
+            dest: /opt/
+
+        - name: Delete archive
+          file:
+            path: /opt/postman-linux-x64.tar.gz
+            state: absent
+      become: true
+      tags:
+        - desktop
+
+    - name: Download LTS Nodejs
+      shell: |
+          curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
+          sudo apt-get install -y nodejs
+      tags: 
+        - dev
+        - pde
+
+    - name: Install and init Chezmoi
+      block:
+        - name: Install Chezmoi
+          shell: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "{{ ansible_env.HOME }}/.local/bin" 
+          become: true
+
+        - name: Init Chezmoi
+          shell: "{{ ansible_env.HOME }}/.local/bin/chezmoi init --apply GabrielTouron"
+
+      tags: debug
+
+
+    - name: Install zsh, add plugins and set as default
+      block:
+        - name: Install zsh-syntax-highlighting plugin
+          git:
+            repo: https://github.com/zsh-users/zsh-autosuggestions.git
+            dest: "{{ ansible_env.HOME }}/.zsh/zsh-autosuggestions"
+
+        - name: Install zsh-z plugin
+          git: 
+            repo: https://github.com/agkozak/zsh-z.git
+            dest: "{{ ansible_env.HOME }}/.zsh/zsh-z"
+
+        - name: Install zsh-syntax-highlighting
+          git:
+            repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+            dest: "{{ ansible_env.HOME }}/.zsh/zsh-syntax-highlighting.git"
+
+        - name: Set zsh as default
+          user:
+            name: gabriel
+            shell: /usr/bin/zsh
+          become: true

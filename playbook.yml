@@ -9,7 +9,7 @@
         update_cache: true
       become: true
 
-    - name: Install Ubuntu tools 
+    - name: Install Essentials Ubuntu tools 
       apt:
         pkg: 
           - apt-transport-https
@@ -26,12 +26,23 @@
           - ca-certificates
           - curl
           - lsb-release
-          - gnome-terminal
-          - fuse
-          - tmux
         state: latest
         update_cache: true
       become: true
+
+    - name: Install Desktop Ubuntu tools
+      apt:
+        pkg:
+          - gnome-terminal
+          - gnome-control-center
+          - fuse
+          - tmux
+          - i3
+          - lxappearance 
+        update_cache: true
+      become: true
+      tags:
+        - desktop
 
     - name: Install, configure, and start Docker
       block:
@@ -167,11 +178,34 @@
         - name: Init Chezmoi
           shell: "{{ ansible_env.HOME }}/.local/bin/chezmoi init --apply GabrielTouron"
 
-      tags: debug
+    - name: Customize Tmux
+      block:
+        - name: Install Tmux plugin manager
+          git:
+            repo: https://github.com/tmux-plugins/tpm
+            dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm" 
 
+        - name: Source Tmux
+          shell: "tmux source {{ ansible_env.HOME }}/.tmux.conf"
+      tags:
+        - pde
 
     - name: Install zsh, add plugins and set as default
       block:
+        - name: Download Starship them
+          get_url:
+            url: https://starship.rs/install.sh
+            dest: /tmp/install.sh
+            mode: u+x 
+          become: true
+
+        - name: Install Starship theme
+          expect:
+            command: sh /tmp/install.sh
+            responses:
+              Install : 'y'
+          become: true
+
         - name: Install zsh-syntax-highlighting plugin
           git:
             repo: https://github.com/zsh-users/zsh-autosuggestions.git
@@ -192,3 +226,6 @@
             name: gabriel
             shell: /usr/bin/zsh
           become: true
+      tags:
+        - debug
+

@@ -29,6 +29,7 @@
           - lsb-release
           - ripgrep
           - gnupg
+          - gnupg2
           - fuse
         state: latest
         update_cache: true
@@ -173,13 +174,55 @@
       tags:
         - desktop
 
-    - name: Download LTS Nodejs
-      shell: |
-          curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
-          sudo apt-get install -y nodejs
+    - name: Setup Node.js LTS
+      block:
+        - name: Add Nodesource apt key
+          apt_key:
+            url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+            id: "68576280"
+            state: present
+
+        - name: Add NodeSource repositories for Node.js
+          apt_repository:
+            repo: "{{ item }}"
+            state: present
+          with_items:
+            - "deb https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main"
+            - "deb-src https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main"
+          register: node_repo
+
+        - name: Update apt cache if repo was added.
+          apt: update_cache=yes
+          when: node_repo is changed
+
+        - name: Create npm global director
+          file:
+            path: "/user/local/lib/npm"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            state: directory
+            mode: '0755'
+
+        - name: Ensure npm global packages are installed
+          npm: 
+            name: "{{ item }}"
+            global: true
+          environment:
+            NPM_CONFIG_PREFIX: /root/.npm-global
+            NODE_PATH: /root/.npm-global/lib/node_modules"
+            NPM_CONFIG_UNSAFE_PERM: "true"
+          with_items: 
+            - "@bitwarden/cli"
+      become: true
       tags: 
         - dev
+        - node
         - pde
+
+    - name: Download Bitwarden CLI
+      npm:
+        name: 
+      
 
     - name: Install and init Chezmoi
       block:

@@ -1,4 +1,4 @@
-- hosts: localhost 
+- hosts: all 
   vars_files:
     - variables.yml
   tasks:
@@ -13,6 +13,7 @@
       apt:
         pkg: 
           - apt-transport-https
+          - build-essential
           - software-properties-common
           - vim
           - zsh
@@ -26,16 +27,20 @@
           - ca-certificates
           - curl
           - lsb-release
+          - ripgrep
+          - gnupg
+          - fuse
         state: latest
         update_cache: true
       become: true
+      tags:
+        - essentials
 
     - name: Install Desktop Ubuntu tools
       apt:
         pkg:
           - gnome-terminal
           - gnome-control-center
-          - fuse
           - tmux
           - i3
           - lxappearance 
@@ -47,14 +52,20 @@
     - name: Install, configure, and start Docker
       block:
         - name: Add Docker's GPG key
-          apt_key:
+          get_url:
             url: https://download.docker.com/linux/ubuntu/gpg
-            state: present
+            dest: /etc/apt/trusted.gpg.d/docker.asc
+            mode: '0644'
+            force: true
+          ignore_errors: true
 
         - name: Add Docker Repository
           apt_repository:
-            repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            repo: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
             state: present
+            update_cache: true
+          vars:
+            - docker_apt_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 
         - name: Update apt and install Docker pkgs 
           apt:
@@ -63,7 +74,7 @@
               - docker-compose-plugin
               - docker-ce-cli
               - containerd.io
-            state: latest
+            state: present 
             update_cache: true
 
         - name: Create the docker group
@@ -89,6 +100,8 @@
             state: started
             enabled: yes
       become: true
+      tags:
+        - docker
 
     - name: Download and install Neovim
       block:
@@ -96,8 +109,7 @@
           get_url:
             url: https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
             dest: /usr/local/bin/nvim
-            mode: u+x
-
+            mode: '0755' 
       become: true
       tags:
         - pde
@@ -178,15 +190,10 @@
         - name: Init Chezmoi
           shell: "{{ ansible_env.HOME }}/.local/bin/chezmoi init --apply GabrielTouron"
 
-    - name: Customize Tmux
-      block:
-        - name: Install Tmux plugin manager
-          git:
-            repo: https://github.com/tmux-plugins/tpm
-            dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm" 
-
-        - name: Source Tmux
-          shell: "tmux source {{ ansible_env.HOME }}/.tmux.conf"
+    - name: Install Tmux plugin manager
+      git:
+         repo: https://github.com/tmux-plugins/tpm
+         dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm" 
       tags:
         - pde
 
@@ -226,6 +233,4 @@
             name: gabriel
             shell: /usr/bin/zsh
           become: true
-      tags:
-        - debug
 

@@ -195,6 +195,11 @@
           apt: update_cache=yes
           when: node_repo is changed
 
+        - name: Install Node.js
+          apt:
+            name: "nodejs=18*"
+            state: present
+
         - name: Create npm global director
           file:
             path: "/user/local/lib/npm"
@@ -207,31 +212,31 @@
           npm: 
             name: "{{ item }}"
             global: true
-          environment:
-            NPM_CONFIG_PREFIX: /root/.npm-global
-            NODE_PATH: /root/.npm-global/lib/node_modules"
-            NPM_CONFIG_UNSAFE_PERM: "true"
           with_items: 
             - "@bitwarden/cli"
+          tags: tata
       become: true
       tags: 
         - dev
         - node
         - pde
 
-    - name: Download Bitwarden CLI
-      npm:
-        name: 
-      
-
     - name: Install and init Chezmoi
       block:
+        - name: Create dir for Chezmoi
+          file:
+            path: "{{ ansible_env.HOME }}/.local/share"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            state: directory
+          become: true
+            
         - name: Install Chezmoi
           shell: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "{{ ansible_env.HOME }}/.local/bin" 
           become: true
 
         - name: Init Chezmoi
-          shell: "{{ ansible_env.HOME }}/.local/bin/chezmoi init --apply GabrielTouron"
+          shell: "{{ ansible_env.HOME }}/.local/bin/chezmoi init --apply GabrielTouron --exclude=templates"
 
     - name: Install Tmux plugin manager
       git:

@@ -176,10 +176,11 @@
     - name: Setup Node.js LTS
       block:
         - name: Add Nodesource apt key
-          apt_key:
+          get_url:
             url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
-            id: "68576280"
-            state: present
+            dest: /etc/apt/trusted.gpg.d/node.asc
+            mode: '0644'
+            force: true
 
         - name: Add NodeSource repositories for Node.js
           apt_repository:

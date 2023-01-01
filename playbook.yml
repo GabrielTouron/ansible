@@ -152,23 +152,10 @@
       tags:
         - desktop
 
-    - name: Download, extract, install and remove archive Postman
-      block:
-        - name: Download Postman
-          get_url:
-            url: https://dl.pstmn.io/download/latest/linux64
-            dest: /opt/postman-linux-x64.tar.gz
-
-        - name: Extract tar
-          unarchive:
-            src: /opt/postman-linux-x64.tar.gz
-            remote_src: true
-            dest: /opt/
-
-        - name: Delete archive
-          file:
-            path: /opt/postman-linux-x64.tar.gz
-            state: absent
+    - name: Install Postman 
+      snap:
+        name:
+          - postman 
       become: true
       tags:
         - desktop
@@ -241,6 +228,13 @@
       git:
          repo: https://github.com/tmux-plugins/tpm
          dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm" 
+      tags:
+        - pde
+
+    - name: Load Gnome terminal config
+      shell: |
+        dconf reset -f /org/gnome/terminal/
+        dconf load /org/gnome/terminal/ < "{{ ansible_env.HOME }}"/.config/gtk-3.0/gnome_terminal_settings_backup.txt
       tags:
         - pde
 

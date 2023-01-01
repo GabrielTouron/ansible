@@ -49,6 +49,15 @@
       tags:
         - desktop
 
+    - name: Edit folder design
+      block:
+        - name: Edit Workspace folder
+          file:
+            path: "{{ ansible_env.HOME }}/Workspace/{{ ansible_user }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            state: directory
+
     - name: Install, configure, and start Docker
       block:
         - name: Add Docker's GPG key

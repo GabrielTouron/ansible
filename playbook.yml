@@ -213,7 +213,6 @@
             global: true
           with_items: 
             - "@bitwarden/cli"
-          tags: tata
       become: true
       tags: 
         - dev

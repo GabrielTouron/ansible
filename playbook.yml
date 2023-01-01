@@ -1,6 +1,4 @@
-- hosts: all 
-  vars_files:
-    - variables.yml
+- hosts: localhost
   tasks:
     - name: Install aptitude
       apt:
@@ -44,6 +42,7 @@
           - gnome-control-center
           - tmux
           - i3
+          - brightnessctl
           - lxappearance 
         update_cache: true
       become: true
@@ -281,4 +280,3 @@
             name: gabriel
             shell: /usr/bin/zsh
           become: true
-

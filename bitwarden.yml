@@ -1,0 +1,36 @@
+- hosts: localhost
+  vars_prompt:
+    - name: bw_email
+      prompt: Enter Bitwarden email
+      private: false
+
+    - name: bw_pswd 
+      prompt: Enter Bitwarden password
+      unsafe: true
+      private: true
+  tasks:
+    - name: Add auto ssh  
+      block:
+        - name: Connect to Bitwarden
+          expect:
+            command: "bw login {{ bw_email }}"
+            responses:
+              Master password : '{{ bw_pswd }}' 
+          ignore_errors: true
+        
+        - name: Unlock Bitwarden
+          shell: "bw unlock"
+
+        - name: Try chezmoi apply with Bitwarden
+          expect:
+            command: chezmoi apply 
+            responses:
+              Master password : '{{ bw_pswd }}' 
+
+        - name: Change set url
+          git_config:
+            scope: local
+            repo: "{{ ansible_env.HOME }}/.local/share/chezmoi"
+            name: remote.origin.url
+            value: "git@github.com:GabrielTouron/dotfiles.git"
+ 

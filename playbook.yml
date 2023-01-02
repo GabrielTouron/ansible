@@ -29,6 +29,7 @@
           - gnupg
           - gnupg2
           - fuse
+          - expect
         state: latest
         update_cache: true
       become: true

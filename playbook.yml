@@ -30,6 +30,7 @@
           - gnupg2
           - fuse
           - expect
+          - fd-find
         state: latest
         update_cache: true
       become: true
@@ -245,6 +246,7 @@
       shell: |
         dconf reset -f /org/gnome/terminal/
         dconf load /org/gnome/terminal/ < "{{ ansible_env.HOME }}"/.config/gtk-3.0/gnome_terminal_settings_backup.txt
+        gsettings set org.gnome.Terminal.Legacy.Settings headerbar "@mb false"
       tags:
         - pde
 

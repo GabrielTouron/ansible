@@ -16,7 +16,6 @@
           - vim
           - zsh
           - xclip
-          - curl
           - htop
           - feh
           - maim
@@ -297,8 +296,31 @@
         - name: Install Pulumi
           command: sh /tmp/pulumi.sh
       tags:
-        - titi
+        - cloud
 
+    - name: Install Gcloud CLI
+      block:
+        - name: Add Gcloud public key
+          get_url:
+            url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+            dest: /usr/share/keyrings/cloud.google.gpg
+            mode: '0644'
+            force: true
+
+        - name: Add Gcloud Repository
+          apt_repository:
+            repo: "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" 
+            state: present
+            update_cache: true
+
+        - name: Update apt and install Gcloud CLI 
+          apt:
+            name: google-cloud-cli 
+            state: present 
+            update_cache: true
+      become: true
+      tags: 
+        - gcloud
 
         
 

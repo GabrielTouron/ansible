@@ -1,12 +1,5 @@
 - hosts: localhost
   tasks:
-    - name: Install aptitude
-      apt:
-        name: aptitude
-        state: latest
-        update_cache: true
-      become: true
-
     - name: Install Essentials Ubuntu tools 
       apt:
         pkg: 
@@ -17,41 +10,25 @@
           - zsh
           - xclip
           - htop
-          - feh
-          - maim
           - git
-          - openssh-server
           - ca-certificates
           - curl
           - lsb-release
           - ripgrep
           - gnupg
           - gnupg2
-          - fuse
           - expect
           - fd-find
+          - tmux
+          - gnome-shell-extension-manager
+          - gir1.2-gtop-2.0
+          - lm-sensors
         state: latest
         update_cache: true
       become: true
       tags:
+        - local
         - essentials
-
-    - name: Install Desktop Ubuntu tools
-      apt:
-        pkg:
-          - gnome-terminal
-          - gnome-control-center
-          - tmux
-          - i3
-          - brightnessctl
-          - lxappearance 
-          - redshift-gtk
-          - redshift 
-        update_cache: true
-      become: true
-      tags:
-        - pkgs
-        - desktop
 
     - name: Edit folder design
       block:
@@ -61,6 +38,8 @@
             owner: "{{ ansible_user }}"
             group: "{{ ansible_user }}"
             state: directory
+      tags:
+        - local
 
     - name: Install, configure, and start Docker
       block:
@@ -164,14 +143,6 @@
         - discord
         - desktop
 
-    - name: Install Postman 
-      snap:
-        name:
-          - postman 
-      become: true
-      tags:
-        - desktop
-
     - name: Setup Node.js LTS
       block:
         - name: Add Nodesource apt key
@@ -247,12 +218,24 @@
       shell: |
         dconf reset -f /org/gnome/terminal/
         dconf load /org/gnome/terminal/ < "{{ ansible_env.HOME }}"/.config/gtk-3.0/gnome_terminal_settings_backup.txt
-        gsettings set org.gnome.Terminal.Legacy.Settings headerbar "@mb false"
       tags:
         - pde
+        - gnome
 
     - name: Install zsh, add plugins and set as default
       block:
+        - name: Install pip
+          apt:
+            update_cache: yes
+            name:
+              - python3-pip
+          become: true
+
+        - name: Install pexpect
+          pip:
+            name: pexpect
+          become: true
+
         - name: Download Starship theme
           get_url:
             url: https://starship.rs/install.sh
@@ -287,6 +270,8 @@
             name: gabriel
             shell: /usr/bin/zsh
           become: true
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
 
     - name: Install pulumi
       block:
@@ -332,34 +317,7 @@
       tags:
         - gcloud
 
-    - name: Install terraform
-      block:
-        - name: Install terraform public key
-          get_url:
-            url: https://apt.releases.hashicorp.com/gpg
-            dest: /tmp/hashicorp.gpg
 
-        - name: Import Hashicorp public key
-          shell: "gpg --dearmor < /tmp/hashicorp.gpg | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg"
-
-        - name: Add Terraform Apt Repository
-          apt_repository:
-            repo: 'deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com jammy main'
-            filename: hashicorp
-            state: present
-            update_cache: true
-
-        - name: Downlaod Terraform
-          apt:
-            name: terraform
-            state: present
-            update_cache: true
-      become: true
-      tags: terraform
-
-    - name: Install Yarn
-      command: npm install --global yarn
-      become: true
 
 
         

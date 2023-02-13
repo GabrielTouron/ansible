@@ -1,5 +1,12 @@
 - hosts: localhost
   tasks:
+    - name: Remove packagekit
+      apt:
+        pkg:
+          - packagekit
+        state: absent
+      become: true
+
     - name: Install Essentials Ubuntu tools 
       apt:
         pkg: 

@@ -324,8 +324,16 @@
       tags:
         - gcloud
 
+    - name: Install Obsidian
+      flatpak:
+        name: md.obsidian.Obsidian
+        state: present
+        remote: flathub
+        method: user
+      tags:
+        - obsidian
 
 
 
-        
+    
 

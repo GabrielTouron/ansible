@@ -71,6 +71,7 @@
               - docker-compose-plugin
               - docker-ce-cli
               - containerd.io
+              - docker-buildx-plugin
             state: present 
             update_cache: true
 
@@ -222,6 +223,7 @@
         - pde
 
     - name: Load Gnome terminal config
+      # TODO: load a global gnome config 
       shell: |
         dconf reset -f /org/gnome/terminal/
         dconf load /org/gnome/terminal/ < "{{ ansible_env.HOME }}"/.config/gtk-3.0/gnome_terminal_settings_backup.txt
@@ -323,17 +325,4 @@
       become: true
       tags:
         - gcloud
-
-    - name: Install Obsidian
-      flatpak:
-        name: md.obsidian.Obsidian
-        state: present
-        remote: flathub
-        method: user
-      tags:
-        - obsidian
-
-
-
-    
 

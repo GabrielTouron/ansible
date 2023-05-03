@@ -28,6 +28,7 @@
           - fd-find
           - tmux
           - gnome-shell-extension-manager
+          - gnome-screenshot
           - gir1.2-gtop-2.0
           - lm-sensors
         state: latest
@@ -339,3 +340,31 @@
       become: true
       tags:
         - anki 
+
+    - name: Install Golang
+      block:
+        - name: Remove old Golang version and install new Golang version 
+          unarchive:
+            src: https://go.dev/dl/go1.20.3.linux-amd64.tar.gz
+            dest: /usr/local
+            remote_src: yes
+      become: true
+      tags:
+        - golang
+
+    - name: Install Ngrok
+      block:
+        - name: Install Ngrok
+          unarchive:
+            src: https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+            dest: /usr/local/bin
+            remote_src: yes
+      become: true
+      tags:
+        - ngrok
+
+
+
+
+
+    

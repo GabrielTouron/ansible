@@ -31,6 +31,7 @@
           - gnome-screenshot
           - gir1.2-gtop-2.0
           - lm-sensors
+          - hugo
         state: latest
         update_cache: true
       become: true
@@ -363,8 +364,11 @@
       tags:
         - ngrok
 
-
-
-
-
-    
+    - name: Install Cozy drive
+      get_url:
+        url: https://nuts.cozycloud.cc/download/channel/stable/64
+        dest: "/usr/local/bin/cozy"
+        mode: '0755'
+      become: true
+      tags:
+        - cozy

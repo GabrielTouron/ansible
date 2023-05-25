@@ -302,13 +302,13 @@
         - name: Add Gcloud public key
           get_url:
             url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-            dest: /usr/share/keyrings/cloud.google.gpg
+            dest: /etc/apt/trusted.gpg.d/cloud.google.asc
             mode: '0644'
             force: true
 
         - name: Add Gcloud Repository
           apt_repository:
-            repo: "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" 
+            repo: "deb [signed-by=/etc/apt/trusted.gpg.d/cloud.google.asc] https://packages.cloud.google.com/apt cloud-sdk main" 
             state: present
             update_cache: true
 
@@ -318,6 +318,8 @@
             state: present 
             update_cache: true
       become: true
+      tags:
+        - gcloud-cli
 
     - name: Download Cloud Sql proxy client binary
       get_url:

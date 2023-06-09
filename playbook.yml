@@ -7,9 +7,9 @@
         state: absent
       become: true
 
-    - name: Install Essentials Ubuntu tools 
+    - name: Install Essentials Ubuntu tools
       apt:
-        pkg: 
+        pkg:
           - apt-transport-https
           - build-essential
           - software-properties-common
@@ -66,15 +66,15 @@
             state: present
             update_cache: true
 
-        - name: Update apt and install Docker pkgs 
+        - name: Update apt and install Docker pkgs
           apt:
-            name: 
+            name:
               - docker-ce
               - docker-compose-plugin
               - docker-ce-cli
               - containerd.io
               - docker-buildx-plugin
-            state: present 
+            state: present
             update_cache: true
 
         - name: Create the docker group
@@ -109,19 +109,19 @@
           get_url:
             url: https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
             dest: /usr/local/bin/nvim
-            mode: '0755' 
+            mode: '0755'
       become: true
       tags:
         - pde
 
     - name: Download and install Mattermost
       block:
-        - name: Download Mattermost setup script 
+        - name: Download Mattermost setup script
           get_url:
             url: https://deb.packages.mattermost.com/setup-repo.sh
             dest: /tmp/setup-repo.sh
 
-        - name: Run Mattermost setup script 
+        - name: Run Mattermost setup script
           shell: bash /tmp/setup-repo.sh
 
         - name: Install Mattermost
@@ -136,12 +136,12 @@
 
     - name: Install Google Chrome
       apt:
-        deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
+        deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         state: present
         update_cache: true
-      become: true 
+      become: true
       tags:
-        - desktop 
+        - desktop
 
     - name: Download Discord
       apt:
@@ -189,13 +189,13 @@
             mode: '0755'
 
         - name: Ensure npm global packages are installed
-          npm: 
+          npm:
             name: "{{ item }}"
             global: true
-          with_items: 
+          with_items:
             - "@bitwarden/cli"
       become: true
-      tags: 
+      tags:
         - dev
         - node
         - pde
@@ -209,9 +209,9 @@
             group: "{{ ansible_user }}"
             state: directory
           become: true
-            
+
         - name: Install Chezmoi
-          shell: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "{{ ansible_env.HOME }}/.local/bin" 
+          shell: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "{{ ansible_env.HOME }}/.local/bin"
           become: true
 
         - name: Init Chezmoi
@@ -219,8 +219,8 @@
 
     - name: Install Tmux plugin manager
       git:
-         repo: https://github.com/tmux-plugins/tpm
-         dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm" 
+        repo: https://github.com/tmux-plugins/tpm
+        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
       tags:
         - pde
 
@@ -251,14 +251,14 @@
           get_url:
             url: https://starship.rs/install.sh
             dest: /tmp/install.sh
-            mode: u+x 
+            mode: u+x
           become: true
 
         - name: Install Starship theme
           expect:
             command: sh /tmp/install.sh
             responses:
-              Install : 'y'
+              Install: 'y'
           become: true
 
         - name: Install zsh-syntax-highlighting plugin
@@ -267,7 +267,7 @@
             dest: "{{ ansible_env.HOME }}/.zsh/zsh-autosuggestions"
 
         - name: Install zsh-z plugin
-          git: 
+          git:
             repo: https://github.com/agkozak/zsh-z.git
             dest: "{{ ansible_env.HOME }}/.zsh/zsh-z"
 
@@ -290,7 +290,7 @@
           get_url:
             url: https://get.pulumi.com
             dest: /tmp/pulumi.sh
-            mode: u+x 
+            mode: u+x
 
         - name: Install Pulumi
           command: sh /tmp/pulumi.sh
@@ -308,14 +308,14 @@
 
         - name: Add Gcloud Repository
           apt_repository:
-            repo: "deb [signed-by=/etc/apt/trusted.gpg.d/cloud.google.asc] https://packages.cloud.google.com/apt cloud-sdk main" 
+            repo: "deb [signed-by=/etc/apt/trusted.gpg.d/cloud.google.asc] https://packages.cloud.google.com/apt cloud-sdk main"
             state: present
             update_cache: true
 
-        - name: Update apt and install Gcloud CLI 
+        - name: Update apt and install Gcloud CLI
           apt:
-            name: google-cloud-cli 
-            state: present 
+            name: google-cloud-cli
+            state: present
             update_cache: true
       become: true
       tags:
@@ -323,14 +323,14 @@
 
     - name: Download Cloud Sql proxy client binary
       get_url:
-        url: https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 
+        url: https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64
         dest: "/usr/local/bin/cloud_sql_proxy"
-        mode: '0755' 
+        mode: '0755'
       become: true
       tags:
         - gcloud
-            
-    - name: Download and install Anki 
+
+    - name: Download and install Anki
       block:
         - name: Unarchive Anki dir
           unarchive:
@@ -338,15 +338,15 @@
             dest: /tmp
             remote_src: yes
 
-        - name: Go to the folder and execute install script 
+        - name: Go to the folder and execute install script
           command: chdir=/tmp/anki-2.1.61-linux-qt6 ./install.sh
       become: true
       tags:
-        - anki 
+        - anki
 
     - name: Install Golang
       block:
-        - name: Remove old Golang version and install new Golang version 
+        - name: Remove old Golang version and install new Golang version
           unarchive:
             src: https://go.dev/dl/go1.20.3.linux-amd64.tar.gz
             dest: /usr/local
@@ -374,3 +374,27 @@
       become: true
       tags:
         - cozy
+
+    - name: Install Github CLI
+      block:
+        - name: Add Gcloud public key
+          get_url:
+            url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+            dest: /etc/apt/trusted.gpg.d/githubcli-archive-keyring.gpg
+            mode: '0644'
+            force: true
+
+        - name: Add Github CLI Repository
+          apt_repository:
+            repo: "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+            state: present
+            update_cache: true
+
+        - name: Update apt and install Gcloud CLI
+          apt:
+            name: gh
+            state: present
+            update_cache: true
+      become: true
+      tags:
+        - github-cli

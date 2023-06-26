@@ -398,3 +398,24 @@
       become: true
       tags:
         - github-cli
+
+    - name: Install Fira nerd font
+      block:
+        - name: ensure fonts directory
+          file:
+            path: "{{ lookup('env', 'HOME') }}/.fonts"
+            state: directory
+
+        - name: Fira exists
+          shell: "ls {{ lookup('env', 'HOME') }}/.fonts/FiraMono*Nerd*Font*"
+          register: fira_exists 
+          ignore_errors: yes
+
+        - name: Download Fira mono 
+          when: fira_exists is failed
+          unarchive:
+            src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/FiraMono.zip 
+            dest: "{{ lookup('env', 'HOME') }}/.fonts/"
+            remote_src: yes
+      tags:
+        - nerd-font

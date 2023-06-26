@@ -417,5 +417,10 @@
             src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/FiraMono.zip 
             dest: "{{ lookup('env', 'HOME') }}/.fonts/"
             remote_src: yes
+
+        - name: Load the font
+          when: fira_exists is failed
+          shell: "fc-cache -fv"
+          become: true
       tags:
         - nerd-font
